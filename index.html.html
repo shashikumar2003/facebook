@@ -2,126 +2,210 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Advanced Facebook Style Post Page</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <style>
-    body {
-      background-color: #e9ebee;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Facebook Post Page</title>
 
-    .card {
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-      background-color: #fff;
-    }
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-    .video-preview {
-      position: relative;
-      cursor: pointer;
-    }
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    .video-preview img {
-      width: 100%;
-      border-radius: 10px;
-    }
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
-    .video-preview::after {
-      content: '\f144';
-      font-family: 'Font Awesome 6 Free';
-      font-weight: 900;
-      font-size: 40px;
-      color: white;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.5);
-      padding: 12px 20px;
-      border-radius: 50%;
-    }
+    <!-- CropperJS -->
+    <link href="https://unpkg.com/cropperjs/dist/cropper.min.css" rel="stylesheet" />
 
-    .btn-custom {
-      background-color: #1877f2;
-      color: white;
-      border: none;
-    }
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-    .btn-custom:hover {
-      background-color: #145db2;
-    }
+    <style>
+        body {
+            background-color: #002966;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    .form-control:focus {
-      box-shadow: 0 0 0 0.2rem rgba(24, 119, 242, 0.25);
-    }
+        .video-preview-container {
+            position: relative;
+            width: 100%;
+        }
 
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-    }
-  </style>
+        .video-preview-container::after {
+            content: "\f144";
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 40px;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px 20px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+    </style>
 </head>
 
 <body>
-  <div class="container py-5">
-    <!-- Photo Detail Section -->
-    <div class="card mb-4 p-4">
-      <div class="section-title">Photo Detail</div>
-      <img src="your-property-image.jpg" alt="Property Image" class="img-fluid rounded mb-3">
-      <div class="d-flex flex-wrap gap-3">
-        <button class="btn btn-outline-secondary"><i class="fas fa-crop"></i> Crop</button>
-        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i> Rotate</button>
-        <button class="btn btn-outline-secondary"><i class="fas fa-user-tag"></i> Tag Photo</button>
-      </div>
+    <div class="container py-5">
+
+        <!-- 📸 Photo Editor -->
+        <div class="card mb-4 p-4">
+            <h4 class="mb-3">📸 Photo Editor (Crop / Rotate)</h4>
+            <input type="file" id="upload-image" class="form-control mb-3" accept="image/*">
+            <img id="image-to-crop" class="img-fluid rounded mb-3" style="display: none;">
+            <div class="d-flex gap-3 flex-wrap">
+                <button class="btn btn-outline-secondary" onclick="cropImage()"><i class="fas fa-crop"></i>
+                    Crop</button>
+                <button class="btn btn-outline-secondary" onclick="rotateImage()"><i class="fas fa-sync-alt"></i>
+                    Rotate</button>
+                <button class="btn btn-outline-secondary"><i class="fas fa-user-tag"></i> Tag</button>
+            </div>
+        </div>
+
+        <!-- 📝 Create Post -->
+        <div class="card mb-4 p-4">
+            <h4 class="mb-3">📝 Create Post</h4>
+            <div class="d-flex align-items-center mb-3">
+                <img src="https://via.placeholder.com/50" class="rounded-circle me-2" alt="User">
+                <strong></strong>
+            </div>
+            <textarea class="form-control mb-3" rows="3" placeholder="What's on your mind, Jaahid?"></textarea>
+            <div class="video-preview-container mb-3">
+                <video id="video-preview-display" controls width="100%" style="border-radius: 10px;">
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="d-flex justify-content-between">
+                <label class="btn btn-outline-primary">
+                    <i class="fas fa-photo-video"></i> Add Photos/Videos
+                    <input type="file" id="upload-video" accept="video/*" hidden>
+                </label>
+                <button class="btn btn-primary">Next</button>
+            </div>
+        </div>
+
+        <!-- 🎬 Upload Video to Firebase -->
+        <div class="card p-4">
+            <h4 class="mb-3">🎬 Upload Video</h4>
+            <input type="file" id="upload" class="form-control mb-3" accept="video/*">
+            <video id="video-preview" controls class="rounded d-none mb-3" width="100%"></video>
+
+            <label>🎞 Video Title</label>
+            <input type="text" id="video-title" class="form-control mb-3" placeholder="Enter a title">
+
+            <label>🏷 Tags</label>
+            <input type="text" id="tags" class="form-control mb-3" placeholder="e.g. nature, sports">
+
+            <label>🤝 Collaborator</label>
+            <input type="text" id="collaborator" class="form-control mb-3" placeholder="Name or profile URL">
+
+            <label>🖼 Change Thumbnail</label>
+            <input type="file" class="form-control mb-3">
+
+            <button class="btn btn-success w-100" id="save-btn">📤 Upload to Firebase</button>
+        </div>
     </div>
 
-    <!-- Video Post Section -->
-    <div class="card mb-4 p-4">
-      <div class="section-title">Create Post</div>
-      <div class="d-flex align-items-center mb-3">
-        <img src="https://via.placeholder.com/50" class="rounded-circle me-2" alt="User Profile">
-        <strong>Jaahid Hasan</strong>
-      </div>
-      <textarea class="form-control mb-3" rows="3" placeholder="What's on your mind, Jaahid?"></textarea>
-      <div class="video-preview mb-3">
-        <img src="car-thumbnail.jpg" alt="Video Thumbnail">
-      </div>
-      <div class="d-flex justify-content-between">
-        <button class="btn btn-outline-primary"><i class="fas fa-photo-video"></i> Add Photos/Videos</button>
-        <button class="btn btn-custom">Next</button>
-      </div>
-    </div>
+    <!-- Bootstrap + CropperJS JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
 
-    <!-- Video Options Section -->
-    <div class="card p-4">
-      <div class="section-title">Video Options</div>
-      <video controls width="100%" class="rounded">
-        <source src="your-video.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-      <div class="mt-4">
-        <label for="video-title" class="form-label">Video Title</label>
-        <input type="text" id="video-title" class="form-control" placeholder="Enter a title">
+    <script>
+        // 🔥 Firebase Config - replace with your actual values
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-        <label for="tags" class="form-label mt-3">Add Tags</label>
-        <input type="text" id="tags" class="form-control" placeholder="e.g. sports, cars">
+        firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+        const database = firebase.database();
 
-        <label for="collaborator" class="form-label mt-3">Add Collaborator</label>
-        <input type="text" id="collaborator" class="form-control" placeholder="Search by name or URL">
+        // 📸 Cropper Logic
+        let cropper;
+        const image = document.getElementById('image-to-crop');
+        const uploadImage = document.getElementById('upload-image');
 
-        <label class="form-label mt-3">Change Thumbnail</label>
-        <input type="file" class="form-control">
+        uploadImage.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                image.src = reader.result;
+                image.style.display = 'block';
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(image, {
+                    aspectRatio: 16 / 9,
+                    viewMode: 1
+                });
+            };
+            reader.readAsDataURL(file);
+        });
 
-        <button class="btn btn-success mt-4 w-100">Save Settings</button>
-      </div>
-    </div>
-  </div>
+        function cropImage() {
+            const croppedCanvas = cropper.getCroppedCanvas();
+            const croppedImage = croppedCanvas.toDataURL('image/png');
+            image.src = croppedImage;
+            cropper.destroy();
+        }
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        function rotateImage() {
+            cropper.rotate(90);
+        }
+
+        // 🎥 Video Preview (Post Section)
+        document.getElementById('upload-video').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const video = document.getElementById('video-preview-display');
+            video.src = URL.createObjectURL(file);
+        });
+
+        // 🎬 Video Preview (Firebase Upload)
+        document.getElementById('upload').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const video = document.getElementById('video-preview');
+            video.src = URL.createObjectURL(file);
+            video.classList.remove('d-none');
+        });
+
+        // 📤 Upload to Firebase
+        document.getElementById('save-btn').addEventListener('click', async () => {
+            const file = document.getElementById('upload').files[0];
+            if (!file) {
+                alert("Please upload a video first.");
+                return;
+            }
+
+            const title = document.getElementById('video-title').value;
+            const tags = document.getElementById('tags').value;
+            const collaborator = document.getElementById('collaborator').value;
+
+            const ref = storage.ref('videos/' + file.name);
+            const snapshot = await ref.put(file);
+            const url = await snapshot.ref.getDownloadURL();
+
+            await database.ref('posts').push({
+                title: title,
+                tags: tags,
+                collaborator: collaborator,
+                videoURL: url,
+                createdAt: new Date().toISOString()
+            });
+
+            alert("🎉 Video uploaded successfully!");
+        });
+    </script>
 </body>
 
 </html>
